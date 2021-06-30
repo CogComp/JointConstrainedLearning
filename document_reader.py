@@ -43,7 +43,7 @@ def num_to_label(num):
     return num_dict[num]
 
 # Padding function
-def padding(sent, pos = False, max_sent_len = 120):
+def padding(sent, pos = False, max_sent_len = 512):
     if pos == False:
         one_list = [1] * max_sent_len
         one_list[0:len(sent)] = sent
@@ -130,6 +130,37 @@ def id_lookup(span_SENT, start_char):
             return token_id
     raise ValueError("Nothing is found.")
     return token_id
+
+def subword_id_getter(sent, e_start_char):
+    """
+    Example: "sent": "Bob hit Jacob.",
+             "e_start_char": 4
+    Output: ([0, 3045, 478, 5747, 4, 2], 2)
+    """
+    roberta_subword_to_ID, roberta_subwords, roberta_subword_span, _ = RoBERTa_list(sent)
+    #return roberta_subword_to_ID, id_lookup(roberta_subword_span, e_start_char)  # 0104_3.pt
+    return roberta_subword_to_ID, id_lookup(roberta_subword_span, e_start_char) + 1 # 0321_0.pt
+
+def subword_id_getter_space_split(space_sep_sent, e_start_char):
+    """
+    A function for space_split_sentence
+    Example: space_sep_sent: "Bob hit Jacob ."
+             e_start_char: 4
+    Output: ([0, 3045, 478, 5747, 479, 2], 2)
+    """
+    roberta_subword_to_ID = [0]
+    space_split_tokens = space_sep_sent.split()
+    token_span = tokenized_to_origin_span(space_sep_sent, space_split_tokens)
+    start_char_to_subword_id = {}
+    for i in range(len(space_split_tokens)):    
+        start_char_to_subword_id[token_span[i][0]] = len(roberta_subword_to_ID)
+        roberta_subword_to_ID.extend(tokenizer.encode(space_split_tokens[i])[1:-1])
+    roberta_subword_to_ID.append(2)
+    try:
+        subword_id = start_char_to_subword_id[e_start_char]
+    except:
+        raise Exception('The provided event start char is wrong')
+    return roberta_subword_to_ID, subword_id
 
 # =========================
 #       KAIROS Reader
@@ -269,7 +300,8 @@ def tsvx_reader(dir_name, file_name):
         my_dict["event_dict"][event_id]["token_id"] = \
         id_lookup(my_dict["sentences"][sent_id]["token_span_DOC"], event_dict["start_char"])
         my_dict["event_dict"][event_id]["roberta_subword_id"] = \
-        id_lookup(my_dict["sentences"][sent_id]["roberta_subword_span_DOC"], event_dict["start_char"])
+        id_lookup(my_dict["sentences"][sent_id]["roberta_subword_span_DOC"], event_dict["start_char"]) + 1
+        # updated on Mar 20, 2021
     return my_dict
 
 # ========================================
@@ -432,5 +464,6 @@ def tml_reader(dir_name, file_name):
         my_dict["event_dict"][event_id]["token_id"] = \
         id_lookup(my_dict["sentences"][sent_id]["token_span_DOC"], event_dict["start_char"])
         my_dict["event_dict"][event_id]["roberta_subword_id"] = \
-        id_lookup(my_dict["sentences"][sent_id]["roberta_subword_span_DOC"], event_dict["start_char"])
+        id_lookup(my_dict["sentences"][sent_id]["roberta_subword_span_DOC"], event_dict["start_char"]) + 1 
+        # updated on Mar 20, 2021
     return my_dict

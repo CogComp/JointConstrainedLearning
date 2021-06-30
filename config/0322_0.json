@@ -1,0 +1,1 @@
+{"downsample": 0.01, "learning_rate": 1e-07, "lambda_annoT": 5.0, "lambda_annoH": 5.0, "lambda_transT": 1.0, "lambda_transH": 1.0, "lambda_cross": 1.0, "MLP_size": 512, "num_layers": 1, "lstm_hidden_size": 256, "roberta_hidden_size": 1024, "lstm_input_size": 768}

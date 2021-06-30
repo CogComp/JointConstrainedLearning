@@ -14,7 +14,8 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from model import *
 from metric import metric, CM_metric
-from exp import *
+from util import *
+import pickle
 random.seed(10)
 
 def data(dataset, debugging, downsample, batch_size):
@@ -29,13 +30,29 @@ def data(dataset, debugging, downsample, batch_size):
         #       HiEve Dataset
         # ========================
         dir_name = "./hievents_v2/processed/"
-        onlyfiles = [f for f in listdir(dir_name) if isfile(join(dir_name, f))]
-        train_range = range(0, 60)
-        valid_range = range(60, 80)
-        test_range = range(80, 100)
-        
+        onlyfiles = [f for f in listdir(dir_name) if isfile(join(dir_name, f)) and f[-4:] == "tsvx"]
+        train_range = []
+        valid_range = []
+        test_range = []
+        with open("./hievents_v2/sorted_dict.json") as f:
+            sorted_dict = json.load(f)
+        i = 0
+        for (key, value) in sorted_dict.items():
+            i += 1
+            key = int(key)
+            if i <= 20:
+                test_range.append(key)
+            elif i <= 40:
+                valid_range.append(key)
+            else:
+                train_range.append(key)
+                
+        random_order = False        
+        if random_order:
+            train_range = range(0, 60)
+            valid_range = range(60, 80)
+            test_range = range(80, 100)
         undersmp_ratio = 0.4
-
         t0 = time.time()
         doc_id = -1
         for file_name in tqdm.tqdm(onlyfiles):
@@ -99,7 +116,7 @@ def data(dataset, debugging, downsample, batch_size):
 
                         xy = my_dict["relation_dict"][(x, y)]["relation"]
 
-                        to_append = str(x), str(y), str(z), \
+                        to_append = str(x), str(y), str(x), \
                                     x_sent, y_sent, x_sent, \
                                     x_position, y_position, x_position, \
                                     x_sent_pos, y_sent_pos, x_sent_pos, \
@@ -212,14 +229,17 @@ def data(dataset, debugging, downsample, batch_size):
 
     if debugging:
         if dataset in ["MATRES", "Joint"]:
-            train_set_MATRES = train_set_MATRES[0:100]
-            test_set_MATRES = train_set_MATRES
-            valid_set_MATRES = train_set_MATRES
+            #train_set_MATRES.extend(valid_set_MATRES)
+            #train_set_MATRES.extend(test_set_MATRES)
+            #train_set_MATRES = train_set_MATRES[0:100]
+            #test_set_MATRES = train_set_MATRES
+            #valid_set_MATRES = train_set_MATRES
             print("Length of train_set_MATRES:", len(train_set_MATRES))
         if dataset in ["HiEve", "Joint"]:
-            train_set_HIEVE = train_set_HIEVE[0:100]
-            test_set_HIEVE = train_set_HIEVE
-            valid_set_HIEVE = train_set_HIEVE
+            #train_set_HIEVE.extend(valid_set_HIEVE)
+            #train_set_HIEVE = train_set_HIEVE[0:100]
+            #test_set_HIEVE = train_set_HIEVE
+            #valid_set_HIEVE = train_set_HIEVE
             print("Length of train_set_HIEVE:", len(train_set_HIEVE))
     # ==============================================================
     #      Use DataLoader to convert to Pytorch acceptable form

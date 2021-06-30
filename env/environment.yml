@@ -1,4 +1,4 @@
-name: /shared/why16gzl/logic_driven/consistency_env
+name: EMNLP_env
 channels:
   - pytorch
   - defaults
@@ -7,8 +7,8 @@ dependencies:
   - _libgcc_mutex=0.1=main
   - asn1crypto=1.3.0=py37_0
   - blas=1.0=mkl
-  - ca-certificates=2020.1.1=0
-  - certifi=2019.11.28=py37_0
+  - ca-certificates=2020.7.22=0
+  - certifi=2020.6.20=py37_0
   - cffi=1.14.0=py37h2e261b9_0
   - chardet=3.0.4=py37_1003
   - cryptography=2.8=py37h1ba5d50_0
@@ -41,7 +41,7 @@ dependencies:
   - numpy=1.18.1=py37h4f9e942_0
   - numpy-base=1.18.1=py37hde5b4d6_1
   - olefile=0.46=py37_0
-  - openssl=1.1.1d=h7b6447c_4
+  - openssl=1.1.1h=h7b6447c_0
   - pillow=7.0.0=py37hb39fc2d_0
   - pip=20.0.2=py37_1
   - plac=0.9.6=py37_0
@@ -49,7 +49,7 @@ dependencies:
   - pyopenssl=19.1.0=py37_0
   - pysocks=1.7.1=py37_0
   - python=3.7.6=h0371630_2
-  - pytorch=1.4.0=py3.7_cuda10.1.243_cudnn7.6.3_0
+  - pytorch=1.6.0=py3.7_cuda10.1.243_cudnn7.6.3_0
   - readline=7.0=h7b6447c_5
   - requests=2.22.0=py37_1
   - setuptools=46.0.0=py37_0
@@ -58,7 +58,7 @@ dependencies:
   - termcolor=1.1.0=py37_1
   - tk=8.6.8=hbc83047_0
   - toolz=0.10.0=py_0
-  - torchvision=0.5.0=py37_cu101
+  - torchvision=0.7.0=py37_cu101
   - tqdm=4.42.1=py_0
   - ujson=1.35=py37h14c3975_0
   - urllib3=1.25.8=py37_0
@@ -68,141 +68,140 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.3.7=h0b5b093_0
   - pip:
-    - absl-py==0.9.0
-    - alabaster==0.7.12
-    - allennlp==0.9.0
-    - apex
-    - attrs==19.3.0
-    - babel==2.8.0
-    - backcall==0.1.0
-    - beautifulsoup4==4.9.1
-    - bleach==3.1.4
+    - absl-py==0.10.0
+    - allennlp==1.0.0
+    - allennlp-models==1.0.0
+    - app-version==0.2.1
+    - async-generator==1.10
+    - attrs==20.2.0
+    - backcall==0.2.0
+    - bleach==3.2.1
     - blis==0.4.1
-    - boto3==1.12.21
-    - botocore==1.15.21
-    - bs4==0.0.1
-    - cachetools==4.1.0
+    - boto3==1.15.6
+    - botocore==1.18.6
+    - cachetools==4.1.1
     - catalogue==1.0.0
-    - click==7.1.1
-    - conllu==1.3.1
+    - cheroot==8.4.5
+    - cherrypy==18.6.0
+    - click==7.1.2
+    - cloudpickle==1.6.0
+    - conllu==3.0
     - cycler==0.10.0
     - cymem==2.0.3
     - decorator==4.4.2
     - defusedxml==0.6.0
-    - docutils==0.15.2
-    - editdistance==0.5.3
+    - en-core-web-sm==2.2.5
     - entrypoints==0.3
+    - es-core-news-sm==2.2.5
     - filelock==3.0.12
-    - flaky==3.7.0
     - flask==1.1.2
-    - flask-cors==3.0.8
-    - ftfy==5.8
-    - gevent==20.6.2
-    - google-auth==1.14.1
+    - ftfy==5.1
+    - future==0.18.2
+    - gensim==3.8.3
+    - google-auth==1.21.3
     - google-auth-oauthlib==0.4.1
-    - greenlet==0.4.16
-    - grpcio==1.28.1
-    - imagesize==1.2.0
-    - importlib-metadata==1.6.0
+    - grpcio==1.32.0
+    - gurobipy==8.1.1
+    - hyperopt==0.2.5
+    - importlib-metadata==2.0.0
     - iniconfig==1.0.1
-    - ipykernel==5.1.4
-    - ipython==7.13.0
+    - ipykernel==5.3.4
+    - ipython==7.18.1
     - ipython-genutils==0.2.0
-    - ipywidgets==7.5.1
     - itsdangerous==1.1.0
-    - jedi==0.16.0
-    - jinja2==2.11.1
-    - jmespath==0.9.5
-    - joblib==0.14.1
+    - jaraco-classes==3.1.0
+    - jaraco-collections==3.0.0
+    - jaraco-functools==3.0.1
+    - jaraco-text==3.2.0
+    - jedi==0.17.2
+    - jinja2==2.11.2
+    - jmespath==0.10.0
+    - joblib==0.16.0
     - jsonnet==0.16.0
     - jsonpickle==1.4.1
     - jsonschema==3.2.0
-    - jupyter-client==6.1.0
+    - jupyter-client==6.1.7
     - jupyter-core==4.6.3
-    - kiwisolver==1.2.0
-    - lxml==4.5.1
-    - markdown==3.2.1
+    - jupyterlab-pygments==0.1.1
+    - kiwisolver==1.3.1
+    - markdown==3.2.2
     - markupsafe==1.1.1
-    - matplotlib==3.2.1
+    - matplotlib==3.3.3
     - mistune==0.8.4
-    - more-itertools==8.4.0
-    - nbconvert==5.6.1
-    - nbformat==5.0.5
+    - more-itertools==8.5.0
+    - nbclient==0.5.0
+    - nbconvert==6.0.6
+    - nbformat==5.0.7
+    - nest-asyncio==1.4.1
+    - networkx==2.5
     - nltk==3.4.5
     - notebook==6.0.3
-    - numpydoc==1.1.0
+    - notify==0.3.1
     - oauthlib==3.1.0
-    - overrides==3.1.0
+    - overrides==3.0.0
     - packaging==20.4
     - pandas==1.0.3
     - pandocfilters==1.4.2
-    - parsimonious==0.8.1
-    - parso==0.6.2
-    - pathlib==1.0.1
+    - parso==0.7.1
+    - pathlib2==2.3.5
     - pexpect==4.8.0
     - pickleshare==0.7.5
     - pluggy==0.13.1
+    - portend==2.6
     - preshed==3.0.2
-    - prometheus-client==0.7.1
-    - prompt-toolkit==3.0.4
-    - protobuf==3.11.3
+    - prometheus-client==0.8.0
+    - prompt-toolkit==3.0.7
+    - protobuf==3.13.0
     - ptyprocess==0.6.0
     - py==1.9.0
+    - py-rouge==1.1
     - pyasn1==0.4.8
     - pyasn1-modules==0.2.8
-    - pygments==2.6.1
+    - pygments==2.7.1
     - pyparsing==2.4.7
-    - pyrsistent==0.16.0
-    - pytest==6.0.1
+    - pyrsistent==0.17.3
+    - pytest==6.1.1
     - python-dateutil==2.8.1
-    - pytorch-pretrained-bert==0.6.2
-    - pytorch-transformers==1.1.0
     - pytz==2020.1
-    - pyzmq==19.0.0
-    - regex==2017.4.5
+    - pyzmq==19.0.2
+    - regex==2020.9.27
     - requests-oauthlib==1.3.0
-    - responses==0.10.16
-    - rsa==4.0
+    - rsa==4.6
     - s3transfer==0.3.3
-    - sacremoses==0.0.38
-    - scikit-learn==0.22.2.post1
-    - scipy==1.4.1
-    - seaborn==0.10.1
+    - sacremoses==0.0.43
+    - scikit-learn==0.23.2
+    - scipy==1.5.2
+    - seaborn==0.11.0
+    - segeval==2.0.11
     - send2trash==1.5.0
-    - sentencepiece==0.1.85
-    - simplejson==3.17.0
+    - sentencepiece==0.1.91
+    - simple-http-server==0.3.1
     - sklearn==0.0
-    - snowballstemmer==2.0.0
-    - soupsieve==2.0.1
-    - spacy==2.3.2
-    - sphinx==3.2.0
-    - sphinxcontrib-applehelp==1.0.2
-    - sphinxcontrib-devhelp==1.0.2
-    - sphinxcontrib-htmlhelp==1.0.3
-    - sphinxcontrib-jsmath==1.0.1
-    - sphinxcontrib-qthelp==1.0.3
-    - sphinxcontrib-serializinghtml==1.1.4
-    - sqlparse==0.3.1
+    - smart-open==4.1.2
+    - spacy==2.2.4
     - srsly==1.0.2
+    - stanza==1.1.1
+    - tempora==4.0.0
     - tensorboard==2.2.1
     - tensorboard-plugin-wit==1.6.0.post3
     - tensorboardx==2.1
-    - terminado==0.8.3
+    - terminado==0.9.1
     - testpath==0.4.4
-    - thinc==7.4.1
-    - tokenizers==0.5.2
+    - textblob==0.15.3
+    - thinc==7.4.0
+    - threadpoolctl==2.1.0
+    - tokenizers==0.7.0
     - toml==0.10.1
     - tornado==6.0.4
-    - traitlets==4.3.3
-    - transformers==2.5.1
-    - unidecode==1.1.1
-    - wasabi==0.7.1
-    - wcwidth==0.1.8
+    - traitlets==5.0.4
+    - transformers==2.11.0
+    - validate-email==1.3
+    - wasabi==0.8.0
+    - wcwidth==0.2.5
     - webencodings==0.5.1
     - werkzeug==1.0.1
-    - widgetsnbextension==3.5.1
     - word2number==1.1
-    - zipp==3.1.0
-    - zope-event==4.4
-    - zope-interface==5.1.0
-prefix: /shared/why16gzl/logic_driven/consistency_env
+    - zc-lockfile==2.0
+    - zipp==3.2.0
+prefix: /shared/why16gzl/conda/miniconda38/envs/EMNLP_env
+

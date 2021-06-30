@@ -10,21 +10,26 @@ from EventDataset import EventDataset
 import sys
 from sklearn.metrics import precision_recall_fscore_support, classification_report, accuracy_score, f1_score, confusion_matrix
 import torch
+import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 from metric import metric, CM_metric
 from transformers import RobertaModel
+import os
 import os.path
 from os import path
+import json
+from json import JSONEncoder
+import notify
+from notify_message import *
+from notify_smtp import *
+from util import *
 
-def format_time(elapsed):
-    '''
-    Takes a time in seconds and returns a string hh:mm:ss
-    '''
-    # Round to the nearest second.
-    elapsed_rounded = int(round((elapsed)))
-    # Format as hh:mm:ss
-    return str(datetime.timedelta(seconds=elapsed_rounded))
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
     
 class exp:
     def __init__(self, cuda, model, epochs, learning_rate, train_dataloader, valid_dataloader_MATRES, test_dataloader_MATRES, valid_dataloader_HIEVE, test_dataloader_HIEVE, finetune, dataset, MATRES_best_PATH, HiEve_best_PATH, load_model_path, model_name = None, roberta_size = "roberta-base"):
@@ -146,7 +151,7 @@ class exp:
             print(self.HiEve_best_prfs, file = self.file)
         return self.MATRES_best_micro_F1, self.HiEve_best_F1
             
-    def evaluate(self, eval_data, test = False):
+    def evaluate(self, eval_data, test = False, predict = False):
         # ========================================
         #             Validation / Test
         # ========================================
@@ -165,7 +170,8 @@ class exp:
             self.model.to(self.cuda)
             print("")
             print("loaded " + eval_data + " best model:" + self.model_name + ".pt")
-            print("(from epoch " + str(self.best_epoch) + " )")
+            if predict == False:
+                print("(from epoch " + str(self.best_epoch) + " )")
             print("Running Evaluation on " + eval_data + " Test Set...")
             if eval_data == "MATRES":
                 dataloader = self.test_dataloader_MATRES
@@ -184,6 +190,8 @@ class exp:
         
         y_pred = []
         y_gold = []
+        y_logits = np.array([[0.0, 1.0, 2.0, 3.0]])
+        softmax = nn.Softmax(dim=1)
         # Evaluate data for one epoch
         for batch in dataloader:
             x_sent = batch[3].to(self.cuda)
@@ -205,15 +213,37 @@ class exp:
                         y_sent_e = self.my_func(y_sent)
                         z_sent_e = self.my_func(z_sent)
                     alpha_logits, beta_logits, gamma_logits = self.model(x_sent_e, y_sent_e, z_sent_e, x_position, y_position, z_position, xy = xy, yz = yz, xz = xz, flag = flag, loss_out = None)
+                    
+            if self.dataset == "Joint":
+                assert list(alpha_logits.size())[1] == 8
+                if eval_data == "MATRES":
+                    alpha_logits = torch.narrow(alpha_logits, 1, 4, 4)
+                else:
+                    alpha_logits = torch.narrow(alpha_logits, 1, 0, 4)
+            else:
+                assert list(alpha_logits.size())[1] == 4
             # Move logits and labels to CPU
             label_ids = xy.to('cpu').numpy()
             y_predict = torch.max(alpha_logits, 1).indices.cpu().numpy()
             y_pred.extend(y_predict)
             y_gold.extend(label_ids)
-            
+            y_logits = np.append(y_logits, softmax(alpha_logits).cpu().numpy(), 0)
+                
         # Measure how long the validation run took.
         validation_time = format_time(time.time() - t0)
         print("Eval took: {:}".format(validation_time))
+        
+        if predict:
+            with open(predict, 'w') as outfile:
+                if eval_data == "MATRES":
+                    numpyData = {"labels": "0 -- Before; 1 -- After; 2 -- Equal; 3 -- Vague", "array": y_logits}
+                else:
+                    numpyData = {"labels": "0 -- Parent-Child; 1 -- Child-Parent; 2 -- Coref; 3 -- NoRel", "array": y_logits}
+                json.dump(numpyData, outfile, cls=NumpyArrayEncoder)
+            msg = message(subject=eval_data + " Prediction Notice",
+                          text=self.dataset + "/" + self.model_name + " Predicted " + str(y_logits.shape[0] - 1) + " instances. (Current Path: " + os.getcwd() + ")")
+            send(msg)  # and send it
+            return 0
         
         if eval_data == "MATRES":
             Acc, P, R, F1, CM = metric(y_gold, y_pred)
@@ -227,6 +257,9 @@ class exp:
                 print("  F1: {0:.3f}".format(F1), file = self.file)
                 print("  Confusion Matrix", file = self.file)
                 print(CM, file = self.file)
+                msg = message(subject=eval_data + " Test Notice",
+                          text = self.dataset + "/" + self.model_name + " Test results:\n" + "  P: {0:.3f}\n".format(P) + "  R: {0:.3f}\n".format(R) + "  F1: {0:.3f}".format(F1) + " (Current Path: " + os.getcwd() + ")")
+                send(msg)  # and send it
             if not test:
                 if F1 > self.MATRES_best_micro_F1 or path.exists(self.MATRES_best_PATH) == False:
                     self.MATRES_best_micro_F1 = F1
@@ -250,6 +283,8 @@ class exp:
                 print("  rst:", file = self.file)
                 print(rst, file = self.file)
                 print("  F1_PC_CP_avg: {0:.3f}".format(F1_PC_CP_avg), file = self.file)
+                msg = message(subject=eval_data + " Test Notice", text = self.dataset + "/" + self.model_name + " Test results:\n" + "  F1_PC_CP_avg: {0:.3f}".format(F1_PC_CP_avg) + " (Current Path: " + os.getcwd() + ")")
+                send(msg)  # and send it
             if not test:
                 if F1_PC_CP_avg > self.HiEve_best_F1 or path.exists(self.HiEve_best_PATH) == False:
                     self.HiEve_best_F1 = F1_PC_CP_avg

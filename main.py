@@ -16,6 +16,8 @@ from model import *
 from metric import metric, CM_metric
 from exp import *
 from data import *
+from util import *
+import json
 
 torch.manual_seed(42)
 
@@ -46,21 +48,41 @@ from hyperopt import fmin
 import csv
 from timeit import default_timer as timer
 
-space = {
-    'downsample': hp.uniform('downsample', 0.01, 0.2),
-    'learning_rate': hp.loguniform('learning_rate', np.log(0.00000001), np.log(0.000001)),
-    'lambda_annoT': hp.uniform('lambda_annoT', 0.0, 1.0),
-    'lambda_annoH': hp.uniform('lambda_annoH', 0.0, 1.0),
-    'lambda_transT': hp.uniform('lambda_transT', 0.0, 1.0),
-    'lambda_transH': hp.uniform('lambda_transH', 0.0, 1.0),
-    'lambda_cross': hp.uniform('lambda_cross', 0.0, 1.0),
-    'MLP_size': 512, #hp.quniform('MLP_size', 128, 1024, 1),
-    'num_layers': 1, #hp.quniform('num_layers', 1, 4, 1),
-    'lstm_hidden_size': 256, #hp.quniform('lstm_hidden_size', 128, 512, 1),
-    'roberta_hidden_size': 1024, #hp.quniform('roberta_hidden_size', 768, 1024, 1),
-    'lstm_input_size': 768, #hp.quniform('lstm_input_size', 768, 1024, 1), # pre-trained word embeddings, roberta-base
-}
-
+if debugging:
+    space = {
+        'downsample': 0.01,
+        'learning_rate': 0.0000001,
+        'lambda_annoT': 2.0,
+        'lambda_annoH': 2.0,
+        'lambda_transT': 1.0,
+        'lambda_transH': 1.0,
+        'lambda_cross': 1.0,
+        'MLP_size': 512, #hp.quniform('MLP_size', 128, 1024, 1),
+        'num_layers': 1, #hp.quniform('num_layers', 1, 4, 1),
+        'lstm_hidden_size': 256, #hp.quniform('lstm_hidden_size', 128, 512, 1),
+        'roberta_hidden_size': 1024, #hp.quniform('roberta_hidden_size', 768, 1024, 1),
+        'lstm_input_size': 768, #hp.quniform('lstm_input_size', 768, 1024, 1), # pre-trained word embeddings, roberta-base
+    }
+    with open("config/" + rst_file_name.replace("rst", "json"), 'w') as config_file:
+        json.dump(space, config_file)
+else:
+    space = {
+        'downsample': hp.uniform('downsample', 0.01, 0.02),
+        'learning_rate': hp.loguniform('learning_rate', np.log(0.00000005), np.log(0.0000002)),
+        'lambda_annoT': hp.uniform('lambda_annoT', 0.0, 1.0),
+        'lambda_annoH': hp.uniform('lambda_annoH', 0.0, 1.0),
+        'lambda_transT': hp.uniform('lambda_transT', 0.0, 1.0),
+        'lambda_transH': hp.uniform('lambda_transH', 0.0, 1.0),
+        'lambda_cross': hp.uniform('lambda_cross', 0.0, 1.0),
+        'MLP_size': 512, #hp.quniform('MLP_size', 128, 1024, 1),
+        'num_layers': 1, #hp.quniform('num_layers', 1, 4, 1),
+        'lstm_hidden_size': 256, #hp.quniform('lstm_hidden_size', 128, 512, 1),
+        'roberta_hidden_size': 1024, #hp.quniform('roberta_hidden_size', 768, 1024, 1),
+        'lstm_input_size': 768, #hp.quniform('lstm_input_size', 768, 1024, 1), # pre-trained word embeddings, roberta-base
+    }
+    #with open("config/" + rst_file_name.replace("rst", "json"), 'w') as config_file:
+    #    json.dump(space, config_file)
+    
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
     
@@ -87,15 +109,15 @@ def objective(params):
     # Total number of training steps is [number of batches] x [number of epochs]. 
     # (Note that this is not the same as the number of training samples).
     if dataset == "MATRES":
-        total_steps = len(train_dataloader_MATRES) * epochs
+        total_steps = len(train_dataloader) * epochs
         print("Total steps: [number of batches] x [number of epochs] =", total_steps)
-        matres_exp = exp(cuda, model, epochs, params['learning_rate'], train_dataloader_MATRES, valid_dataloader_MATRES, test_dataloader_MATRES, None, None, finetune, dataset, MATRES_best_PATH, None, None, model_name)
+        matres_exp = exp(cuda, model, epochs, params['learning_rate'], train_dataloader, valid_dataloader_MATRES, test_dataloader_MATRES, None, None, finetune, dataset, MATRES_best_PATH, None, None, model_name)
         T_F1, H_F1 = matres_exp.train()
         matres_exp.evaluate(eval_data = "MATRES", test = True)
     elif dataset == "HiEve":
-        total_steps = len(train_dataloader_HIEVE) * epochs
+        total_steps = len(train_dataloader) * epochs
         print("Total steps: [number of batches] x [number of epochs] =", total_steps)
-        hieve_exp = exp(cuda, model, epochs, params['learning_rate'], train_dataloader_HIEVE, None, None, valid_dataloader_HIEVE, test_dataloader_HIEVE, finetune, dataset, None, HiEve_best_PATH, None, model_name)
+        hieve_exp = exp(cuda, model, epochs, params['learning_rate'], train_dataloader, None, None, valid_dataloader_HIEVE, test_dataloader_HIEVE, finetune, dataset, None, HiEve_best_PATH, None, model_name)
         T_F1, H_F1 = hieve_exp.train()
         hieve_exp.evaluate(eval_data = "HiEve", test = True)
     elif dataset == "Joint":
@@ -117,7 +139,7 @@ def objective(params):
     print("########################## Append a row to out_file ##########################")
     of_connection = open(out_file, 'a')
     writer = csv.writer(of_connection)
-    writer.writerow([loss, T_F1, H_F1, params, ITERATION, run_time])
+    writer.writerow([loss, T_F1, H_F1, params, epochs, dataset, finetune, batch_size, ITERATION, run_time])
     
     # Dictionary with information for evaluation
     return {'loss': loss, 'MATRES F1': T_F1, 'HiEve F1': H_F1, \
@@ -131,12 +153,12 @@ tpe_algorithm = tpe.suggest
 bayes_trials = Trials()
 
 # File to save first results
-out_file = 'results/roberta_trials.csv'
+out_file = 'hyperopt_results/' + rst_file_name.replace(".rst", "") + '.csv'
 of_connection = open(out_file, 'w')
 writer = csv.writer(of_connection)
 
 # Write the headers to the file
-writer.writerow(['loss', 'MATRES F1', 'HiEve F1', 'params', 'iteration', 'train_time'])
+writer.writerow(['loss', 'MATRES F1', 'HiEve F1', 'params', 'epochs', 'dataset', 'finetune', 'batch_size', 'iteration', 'train_time'])
 of_connection.close()
 
 # Global variable
@@ -147,7 +169,7 @@ ITERATION = 0
 best = fmin(fn = objective, space = space, algo = tpe.suggest, 
             max_evals = MAX_EVALS, trials = bayes_trials, rstate = np.random.RandomState(50))
 
-results = pd.read_csv('results/roberta_trials.csv')
+results = pd.read_csv(out_file)
 
 # Sort values with best on top and reset index for slicing
 results.sort_values('loss', ascending = True, inplace = True)

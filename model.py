@@ -93,6 +93,7 @@ class roberta_mlp(nn.Module):
         gamma_logits = self.fc2(self.relu(self.fc1(gamma_representation)))
         
         if loss_out is None:
+            # Do not calculate or output the loss
             return alpha_logits, beta_logits, gamma_logits
         else:
             loss = 0.0
@@ -107,14 +108,25 @@ class roberta_mlp(nn.Module):
                     loss += self.lambdas['lambda_transH'] * self.transitivity_loss_H(alpha_logits, beta_logits, gamma_logits).sum()
 
             elif self.dataset == "Joint":
+                """
+                if flag[0] == 1:
+                    loss += self.lambdas['lambda_annoT'] * (self.MATRES_anno_loss(alpha_logits[:, 4:], xy) + \
+                                                            self.MATRES_anno_loss(beta_logits[:, 4:], xy) + \
+                                                            self.MATRES_anno_loss(gamma_logits[:, 4:], xy))
+                else:
+                    loss += self.lambdas['lambda_annoH'] * (self.HiEve_anno_loss(alpha_logits[:, 0:4], xy) + \
+                                                            self.HiEve_anno_loss(beta_logits[:, 0:4], xy) + \
+                                                            self.HiEve_anno_loss(gamma_logits[:, 0:4], xy))
+                """
+                ### The reason why the above calculation is wrong: each instance can be either from HiEve or MATRES
                 for i in range(0, batch_size):
                     if flag[i] == 1:
                         loss += self.lambdas['lambda_annoT'] * (self.MATRES_anno_loss(alpha_logits[i][4:].view([1, 4]), xy[i].view(1)) + self.MATRES_anno_loss(beta_logits[i][4:].view([1, 4]), yz[i].view(1)) + self.MATRES_anno_loss(gamma_logits[i][4:].view([1, 4]), xz[i].view(1)))
                     elif flag[i] == 0:
                         loss += self.lambdas['lambda_annoH'] * (self.HiEve_anno_loss(alpha_logits[i][0:4].view([1, 4]), xy[i].view(1)) + self.HiEve_anno_loss(beta_logits[i][0:4].view([1, 4]), yz[i].view(1)) + self.HiEve_anno_loss(gamma_logits[i][0:4].view([1, 4]), xz[i].view(1)))
                 if self.add_loss:
-                    loss += self.lambdas['lambda_transT'] * self.transitivity_loss_T(alpha_logits[4:], beta_logits[4:], gamma_logits[4:]).sum()
-                    loss += self.lambdas['lambda_transH'] * self.transitivity_loss_H(alpha_logits[0:4], beta_logits[0:4], gamma_logits[0:4]).sum()
+                    loss += self.lambdas['lambda_transT'] * self.transitivity_loss_T(alpha_logits[:, 4:], beta_logits[:, 4:], gamma_logits[:, 4:]).sum()
+                    loss += self.lambdas['lambda_transH'] * self.transitivity_loss_H(alpha_logits[:, 0:4], beta_logits[:, 0:4], gamma_logits[:, 0:4]).sum()
                     if self.add_loss == 2:
                         loss += self.lambdas['lambda_cross'] * self.cross_category_loss(alpha_logits, beta_logits, gamma_logits).sum()
             else:
@@ -226,8 +238,8 @@ class BiLSTM_MLP(nn.Module):
                     elif flag[i] == 0:
                         loss += self.lambdas['lambda_annoH'] * (self.HiEve_anno_loss(alpha_logits[i][0:4].view([1, 4]), xy[i].view(1)) + self.HiEve_anno_loss(beta_logits[i][0:4].view([1, 4]), yz[i].view(1)) + self.HiEve_anno_loss(gamma_logits[i][0:4].view([1, 4]), xz[i].view(1)))
                 if self.add_loss:
-                    loss += self.lambdas['lambda_transT'] * self.transitivity_loss_T(alpha_logits[4:], beta_logits[4:], gamma_logits[4:]).sum()
-                    loss += self.lambdas['lambda_transH'] * self.transitivity_loss_H(alpha_logits[0:4], beta_logits[0:4], gamma_logits[0:4]).sum()
+                    loss += self.lambdas['lambda_transT'] * self.transitivity_loss_T(alpha_logits[:, 4:], beta_logits[:, 4:], gamma_logits[:, 4:]).sum()
+                    loss += self.lambdas['lambda_transH'] * self.transitivity_loss_H(alpha_logits[:, 0:4], beta_logits[:, 0:4], gamma_logits[:, 0:4]).sum()
                     if self.add_loss == 2:
                         loss += self.lambdas['lambda_cross'] * self.cross_category_loss(alpha_logits, beta_logits, gamma_logits).sum()
             else:
